@@ -47,6 +47,14 @@ $plugins->attachHook('render_sanitize_post', 'geshi_restore_code($text, $geshi_c
 
 function geshi_strip_code(&$text, &$codeblocks, $random_id)
 {
+  // remove nowiki
+  $nw = preg_match_all('#<nowiki>(.*?)<\/nowiki>#is', $text, $nowiki);
+    
+  for ( $i = 0; $i < $nw; $i++ )
+  {
+    $text = str_replace('<nowiki>'.$nowiki[1][$i].'</nowiki>', '{NOWIKI:'.$random_id.':'.$i.'}', $text);
+  }
+  
   global $geshi_supported_formats;
   $codeblocks = array();
   $sf = '(' . implode('|', $geshi_supported_formats) . ')';
@@ -67,6 +75,12 @@ function geshi_strip_code(&$text, &$codeblocks, $random_id)
         'code' => $matches[3][$i]
       );
     $text = str_replace_once($match, "{GESHI_BLOCK:$i:$random_id}", $text);
+  }
+  
+  // Reinsert <nowiki> sections
+  for ( $i = 0; $i < $nw; $i++ )
+  {
+    $text = str_replace('{NOWIKI:'.$random_id.':'.$i.'}', $nowiki[1][$i], $text);
   }
 }
 
