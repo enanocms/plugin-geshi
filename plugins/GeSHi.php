@@ -22,13 +22,7 @@ Author URI: http://enanocms.org/
 
 global $db, $session, $paths, $template, $plugins; // Common objects
 $GLOBALS['geshi_supported_formats'] = array(
-    'abap', 'blitzbasic', 'cpp-qt', 'd', 'idl', 'lua', 'ocaml', 'python', 'smalltalk', 'vhdl', 'actionscript', 'bnf', 'csharp',
-    'eiffel', 'ini', 'm68k', 'oobas', 'qbasic', 'smarty', 'visualfoxpro', 'ada', 'caddcl', 'fortran', 'inno', 'matlab',
-    'oracle8', 'rails', 'sql', 'winbatch', 'apache', 'cadlisp', 'css', 'freebasic', 'io', 'mirc', 'pascal', 'reg', 'tcl', 'xml',
-    'applescript', 'cfdg', 'delphi', 'genero', 'java5', 'mpasm', 'perl', 'robots', 'text', 'xpp', 'asm', 'cfm', 'diff', 'gml', 'java',
-    'mysql', 'per', 'ruby', 'thinbasic', 'z80', 'asp', 'c_mac', 'div', 'groovy', 'javascript', 'nsis', 'php-brief', 'sas', 'tsql',
-    'autoit', 'c', 'dos', 'haskell', 'latex', 'objc', 'php', 'scheme', 'vbnet', 'bash', 'cpp', 'dot', 'html', 'lisp',
-    'ocaml-brief', 'plsql', 'sdlbasic', 'vb'
+    'abap', 'actionscript3', 'actionscript', 'ada', 'apache', 'applescript', 'apt_sources', 'asm', 'asp', 'autoit', 'avisynth', 'bash', 'basic4gl', 'bf', 'blitzbasic', 'bnf', 'boo', 'caddcl', 'cadlisp', 'cfdg', 'cfm', 'cil', 'c_mac', 'cobol', 'c', 'cpp', 'cpp-qt', 'csharp', 'css', 'delphi', 'diff', 'div', 'dos', 'dot', 'd', 'eiffel', 'email', 'fortran', 'freebasic', 'genero', 'gettext', 'glsl', 'gml', 'gnuplot', 'groovy', 'haskell', 'hq9plus', 'html', 'idl', 'ini', 'inno', 'intercal', 'io', 'java5', 'java', 'javascript', 'kixtart', 'klonec', 'klonecpp', 'latex', 'lisp', 'lolcode', 'lotusformulas', 'lotusscript', 'lscript', 'lua', 'm68k', 'make', 'matlab', 'mirc', 'mpasm', 'mxml', 'mysql', 'nsis', 'objc', 'ocaml-brief', 'ocaml', 'oobas', 'oracle11', 'oracle8', 'pascal', 'perl', 'per', 'php-brief', 'php', 'pic16', 'pixelbender', 'plsql', 'povray', 'powershell', 'progress', 'prolog', 'providex', 'python', 'qbasic', 'rails', 'reg', 'robots', 'ruby', 'sas', 'scala', 'scheme', 'scilab', 'sdlbasic', 'smalltalk', 'smarty', 'sql', 'tcl', 'teraterm', 'text', 'thinbasic', 'tsql', 'typoscript', 'vbnet', 'vb', 'verilog', 'vhdl', 'vim', 'visualfoxpro', 'visualprolog', 'whitespace', 'winbatch', 'xml', 'xorg_conf', 'xpp', 'z80'
   );
 
 // Knock out the existing <code> tag support
@@ -56,20 +50,21 @@ function geshi_strip_code(&$text, &$codeblocks, $random_id)
   global $geshi_supported_formats;
   $codeblocks = array();
   $sf = '(' . implode('|', $geshi_supported_formats) . ')';
-  preg_match_all('/<code type="?' . $sf . '"?>([\w\W]*?)<\/code>/ms', $text, $matches);
+  $regexp = '/<(code|source) (?:type|lang)="?' . $sf . '"?>(.*?)<\/\\1>/s';
+  preg_match_all($regexp, $text, $matches);
   
   // for debug
   /*
   if ( strstr($text, '<code type') )
-    die('processing codes: <pre>' . htmlspecialchars(print_r($matches, true)) . '</pre><pre>' . htmlspecialchars($text) . '</pre>' . htmlspecialchars('/<code type="?' . $sf . '"?>([\w\W]*?)<\/code>/'));
+    die('processing codes: <pre>' . htmlspecialchars(print_r($matches, true)) . '</pre><pre>' . htmlspecialchars($text) . '</pre>' . htmlspecialchars($regexp));
   */
   
   foreach ( $matches[0] as $i => $match )
   {
     $codeblocks[$i] = array(
         'match' => $match,
-        'lang' => $matches[1][$i],
-        'code' => $matches[2][$i]
+        'lang' => $matches[2][$i],
+        'code' => $matches[3][$i]
       );
     $text = str_replace_once($match, "{GESHI_BLOCK:$i:$random_id}", $text);
   }
@@ -95,10 +90,13 @@ function geshi_perform_highlight(&$text, &$codeblocks, $random_id)
     $did_header_tweak = true;
     global $template;
     $template->add_header('<style type="text/css">
-      pre.geshi_highlighted {
+      .geshi_highlighted {
         max-height: 1000000px !important;
+        width: 600px !important;
+        clip: rect(0px,auto,auto,0px);
+        overflow: auto;
       }
-      pre.geshi_highlighted a {
+      .geshi_highlighted a {
         background-image: none !important;
         padding-right: 0 !important;
       }
@@ -115,7 +113,7 @@ function geshi_perform_highlight(&$text, &$codeblocks, $random_id)
     $lang =& $match['lang'];
     $code =& $match['code'];
     
-    $geshi = new GeSHi($code, $lang, null);
+    $geshi = new GeSHi(trim($code), $lang, null);
     $geshi->set_header_type(GESHI_HEADER_PRE);
     // $geshi->enable_line_numbers(GESHI_FANCY_LINE_NUMBERS);
     $geshi->set_overall_class('geshi_highlighted');
