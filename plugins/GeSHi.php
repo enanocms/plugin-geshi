@@ -104,12 +104,6 @@ function geshi_perform_highlight(&$text, &$codeblocks, $random_id)
     $did_header_tweak = true;
     global $template;
     $template->add_header('<style type="text/css">
-      .geshi_highlighted {
-        max-height: 1000000px !important;
-        width: 600px !important;
-        clip: rect(0px,auto,auto,0px);
-        overflow: auto;
-      }
       .geshi_highlighted a {
         background-image: none !important;
         padding-right: 0 !important;
@@ -127,7 +121,7 @@ function geshi_perform_highlight(&$text, &$codeblocks, $random_id)
     $lang =& $match['lang'];
     $code =& $match['code'];
     
-    $geshi = new GeSHi(trim($code), $lang, null);
+    $geshi = new GeSHi(trim($code, "\r\n"), $lang, null);
     $geshi->set_header_type(GESHI_HEADER_PRE);
     // $geshi->enable_line_numbers(GESHI_FANCY_LINE_NUMBERS);
     $geshi->set_overall_class('geshi_highlighted');
