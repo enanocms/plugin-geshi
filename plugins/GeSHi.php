@@ -1,16 +1,16 @@
 <?php
 /*
 Plugin Name: GeSHi syntax highlighting
-Plugin URI: http://enanocms.org/GeSHi_support
+Plugin URI: http://enanocms.org/plugin/geshi
 Description: Adds syntax highlighting support using the GeSHi engine.
 Author: Dan Fuhry
-Version: 0.1
+Version: 0.2
 Author URI: http://enanocms.org/
 */
 
 /*
  * GeSHi highlighting plugin for Enano
- * Version 0.1
+ * Version 0.2
  * Copyright (C) 2007 Dan Fuhry
  *
  * This program is Free Software; you can redistribute and/or modify it under the terms of the GNU General Public License
