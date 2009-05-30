@@ -49,17 +49,17 @@ function geshi_strip_code(&$text, &$codeblocks, $random_id)
 {
   // remove nowiki
   $nw = preg_match_all('#<nowiki>(.*?)<\/nowiki>#is', $text, $nowiki);
-    
+  
   for ( $i = 0; $i < $nw; $i++ )
   {
-    $text = str_replace('<nowiki>'.$nowiki[1][$i].'</nowiki>', '{NOWIKI:'.$random_id.':'.$i.'}', $text);
+    $text = str_replace($nowiki[0][$i], '{NOWIKI:'.$random_id.':'.$i.'}', $text);
   }
   
   global $geshi_supported_formats;
   $codeblocks = array();
   $sf = '(' . implode('|', $geshi_supported_formats) . ')';
   $regexp = '/<(code|source) (?:type|lang)="?' . $sf . '"?>(.*?)<\/\\1>/s';
-  preg_match_all($regexp, $text, $matches);
+  $count = preg_match_all($regexp, $text, $matches);
   
   // for debug
   /*
@@ -67,20 +67,21 @@ function geshi_strip_code(&$text, &$codeblocks, $random_id)
     die('processing codes: <pre>' . htmlspecialchars(print_r($matches, true)) . '</pre><pre>' . htmlspecialchars($text) . '</pre>' . htmlspecialchars($regexp));
   */
   
-  foreach ( $matches[0] as $i => $match )
-  {
-    $codeblocks[$i] = array(
-        'match' => $match,
-        'lang' => $matches[2][$i],
-        'code' => $matches[3][$i]
-      );
-    $text = str_replace_once($match, "{GESHI_BLOCK:$i:$random_id}", $text);
-  }
+  if ( $count > 0 )
+    foreach ( $matches[0] as $i => $match )
+    {
+      $codeblocks[$i] = array(
+          'match' => $match,
+          'lang' => $matches[2][$i],
+          'code' => $matches[3][$i]
+        );
+      $text = str_replace_once($match, "{GESHI_BLOCK:$i:$random_id}", $text);
+    }
   
-  // Reinsert <nowiki> sections
+  // restore nowiki
   for ( $i = 0; $i < $nw; $i++ )
   {
-    $text = str_replace('{NOWIKI:'.$random_id.':'.$i.'}', $nowiki[1][$i], $text);
+    $text = str_replace('{NOWIKI:'.$random_id.':'.$i.'}', $nowiki[0][$i], $text);
   }
 }
 
